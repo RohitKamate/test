@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inbound Call Volume</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/0.1.0/chartjs-plugin-datalabels.min.js" integrity="sha512-56louUrGHjEVVWKeKePVM7vUw0p4r5yPy2Gz5zP3QglxMqsiomEDACjyvek1wAy9zViqnn57cLhAQqRln2x7Yg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</head>
+<body>
+    <form method="POST" action="/card">
+        <div class="Dateformat" style="display: flex; flex-direction: row; justify-content:space-around; background-color: rgb(13, 194, 231 ); border-radius: 8px; border-top-left-radius: 8px; height: 2rem; width:30%">
+            <div class="Start_format" style=" font-size: 1.2rem; color: black; font-weight: bold; text-align: center; height: 1.5rem; font-family: ui-sans-serif;">
+                <input type="date" id="start_date" name="start_date" value="{{ result.start_date }}" style="-webkit-border-radius: 5px;padding: 5px 10px;
+        border-radius: 5px;" required>
+
+
+            </div>
+            <div class="to_format" style="display: flex;border:none; font-size: 1.2rem; color: black; font-weight: bold;
+             text-align: center; height: 1.5rem; font-family: ui-sans-serif;">
+                <label style="color: rgb(17, 77, 152);-webkit-border-radius: 5px;padding: 5px 10px;
+                border-radius: 5px; ">TO</label>
+            </div>
+            <div class="end_format" style=" font-size: 1.2rem; color: black; font-weight: bold; text-align: center;
+            height: 1.5rem; font-family: ui-sans-serif;">
+                <input type="date" id="end_date" name="end_date" value="{{ result.end_date }}" style="-webkit-border-radius: 5px;padding: 5px 10px;
+                border-radius: 5px;" required>
+            </div>
+            <div class="submit_format" style="  color: black; font-weight: bold; text-align: center; height: 1.5rem;
+            font-family: ui-sans-serif;">
+                <input type="submit" style=" color: white;-webkit-border-radius: 5px;padding: 5px 10px;
+                border-radius: 5px; background-color:rgb(79, 171, 230)  " value="Search">
+            </div>
+        </div>
+    </form>
+
+    <div class="first_card" style="background-color: rgb(82, 187, 255); width: 22%; height: 75% width:50;
+        margin-top: 2em; margin-left: 2em; border-radius: 8px;flex-direction: row">
+        <div style="display: flex; flex-direction: column;">
+            <div class="first_card_upper" style="display: flex; flex-direction: row;
+                background-color: rgb(79, 171, 230); border-top-right-radius: 8px; border-top-left-radius: 8px; height: 3rem;">
+                <p class="clinic_class" style="border-bottom: 2px solid rgba(82, 187, 255, 0.5); width:100%;
+                 height: 3.1rem; font-size: 1.2rem; color: black; font-weight: bold; text-align: center; margin-top: 0.6rem;
+                 font-family: ui-sans-serif;">Inbound Call Volumes</p>
+            </div>
+            <div class="first_card_lower" style="display: flex; flex-direction: column; margin-top: 1rem; margin-left: 1rem; font-size: 1.1rem;">
+                <div class="first_card_first_content" style="display: flex; flex-direction: row;">
+                    <p class="Cumulative" style="margin-left: 1%; font-family: revert; color: black;">Cumulative* : </p>
+                    <div id="cumulative_count_card1" class="Cumulative" style="margin-left: 5.5rem; font-family: revert; color: black; margin-top: 1.20rem;">
+                        {% if result %}
+                            {{ result.total_inbound_calls }}
+                        {% else %}
+                            {{ total_calls }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="first_card_second_cotent" style="display: flex; flex-direction: row;">
+                    <p class="today_class" style="margin-left: 1%; color: black;
+                     font-family: revert;">Today Count : </p>
+                    <div id="today_count_card1" style="margin-left: 6rem; font-family: revert;
+                     color: black; margin-top: 1.20rem;">{{ today_calls }}</div>
+                </div>
+                <div class="first_card_third_content" style="display: flex; flex-direction: row;">
+                    <p class="yesterday_class" style="margin-left: 1%; color: black;
+                    font-family: revert;">Yesterday Count : </p>
+                    <div id="yesterday_count_card1" style="margin-left: 4.3rem; font-family: revert;
+                    color: black; margin-top: 1.20rem;">{{ yesterday_calls }}</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+        <div class="first_card" style="display: flex; flex-direction: row;width: 50%; height: 50%;
+         margin-top: 2em; margin-left: 2em; border-radius: 8px;">
+            <canvas id="callChart" width="500" height="200"></canvas>
+        </div>
+
+
+    <script>
+        var chartData = {% if result %}
+                            {{result.details|tojson|safe}}
+                         {% else %}
+                            {{ inbound_calls_by_date|tojson|safe }}
+                         {% endif %};
+        var dates = Object.keys(chartData);
+        var callCounts = Object.values(chartData);
+
+        var ctx = document.getElementById('callChart').getContext('2d');
+        var callChart = new Chart("callChart", {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Inbound Call Volume',
+                    data: callCounts,
+                    lineTension: 0,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+
+
+            options: {
+                plugins: {
+                    datalabels: {
+                    display: true,
+                    anchor: 'center', // Adjust this as needed
+                    align: 'top', // Adjust this as needed
+                    formatter: (value, context) => {
+                    return value; // Display the data value on each point
+                    },
+
+
+
+                    },
+                },
+
+                legend: {display: true},
+                responsive: true,
+
+                scales: {
+
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'MMM D',
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date',
+                        },
+                    },
+
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Inbound Call Volume'
+                        }
+                    }
+                },
+
+
+            }
+
+        });
+
+    </script>
+
+    <div>
+
+    </div>
+
+    <div>
+
+    </div>
+
+</body>
+</html>
